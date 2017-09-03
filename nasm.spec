@@ -1,22 +1,18 @@
 Summary: A portable x86 assembler which uses Intel-like syntax
 Name: nasm
-Version: 2.10.07
-Release: 7%{?dist}
+Version: 2.13.01
+Release: 1%{?dist}
 License: BSD
 URL: http://www.nasm.us
 Source0: http://www.nasm.us/pub/nasm/releasebuilds/%{version}/%{name}-%{version}.tar.bz2
 Source1: http://www.nasm.us/pub/nasm/releasebuilds/%{version}/%{name}-%{version}-xdoc.tar.bz2
-Patch1: %{name}-manpages.patch
 BuildRequires: perl(Env)
 BuildRequires: autoconf
 BuildRequires: asciidoc
 BuildRequires: xmlto
-Requires(post): /sbin/install-info
-Requires(preun): /sbin/install-info
 
 %package doc
 Summary: Documentation for NASM
-BuildRequires: ghostscript, texinfo
 BuildArch: noarch
 # For arch to noarch conversion
 Obsoletes: %{name}-doc < %{version}-%{release}
@@ -41,30 +37,17 @@ include linker, library manager, loader, and information dump.
 %prep
 %setup -q
 tar xjf %{SOURCE1} --strip-components 1
-%patch1 -p1
 
 %build
 autoreconf
 %configure
-make everything %{?_smp_mflags}
-gzip -9f doc/nasmdoc.{ps,txt}
+make %{?_smp_mflags}
+gzip -9f doc/nasmdoc.{pdf,txt}
 
 %install
 mkdir -p $RPM_BUILD_ROOT%{_bindir}
 mkdir -p $RPM_BUILD_ROOT/%{_mandir}/man1
 make INSTALLROOT=$RPM_BUILD_ROOT install install_rdf
-install -d $RPM_BUILD_ROOT/%{_infodir}
-install -t $RPM_BUILD_ROOT/%{_infodir} doc/info/*
-
-%post
-if [ -e %{_infodir}/nasm.info.gz ]; then
-  /sbin/install-info %{_infodir}/nasm.info.gz  %{_infodir}/dir || :
-fi
-
-%preun
-if [ $1 = 0 -a -e %{_infodir}/nasm.info.gz ]; then
-  /sbin/install-info --delete %{_infodir}/nasm.info.gz %{_infodir}/dir || :
-fi
 
 %files
 %doc AUTHORS CHANGES README TODO
@@ -72,10 +55,9 @@ fi
 %{_bindir}/ndisasm
 %{_mandir}/man1/nasm*
 %{_mandir}/man1/ndisasm*
-%{_infodir}/nasm.info*.gz
 
 %files doc
-%doc doc/html doc/nasmdoc.txt.gz doc/nasmdoc.ps.gz
+%doc doc/html doc/nasmdoc.txt.gz doc/nasmdoc.pdf.gz
 
 %files rdoff
 %{_bindir}/ldrdf
@@ -91,6 +73,11 @@ fi
 %{_mandir}/man1/ld*
 
 %changelog
+* Sun Sep 03 2017 Jajauma's Packages <jajauma@yandex.ru> - 2.13.01-1
+- Update to latest upstream release
+- Drop nasm-manpages.patch
+- Don't rebuild doc from source
+
 * Fri Jan 24 2014 Daniel Mach <dmach@redhat.com> - 2.10.07-7
 - Mass rebuild 2014-01-24
 
